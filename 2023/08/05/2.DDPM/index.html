@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"shawnguo327.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.25.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Personal study notes of work DDPMForward前向过程 x0 -&gt; xt   x0 真实图像   xt 最终噪声   q(xt | xt-1) 以前一个状态为均值的高斯分布，从这里采 xt   上面一行的分布方差为 beta_t（t ∈ [1, T]）   T 步数、beta_1 和 beta_t 是需要设置的  123456789betas &#x3D; torch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DDPM">
+<meta property="og:url" content="http://shawnguo327.github.io/2023/08/05/2.DDPM/index.html">
+<meta property="og:site_name" content="Shawn尚&#39;s Blog">
+<meta property="og:description" content="Personal study notes of work DDPMForward前向过程 x0 -&gt; xt   x0 真实图像   xt 最终噪声   q(xt | xt-1) 以前一个状态为均值的高斯分布，从这里采 xt   上面一行的分布方差为 beta_t（t ∈ [1, T]）   T 步数、beta_1 和 beta_t 是需要设置的  123456789betas &#x3D; torch">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-08-06T01:55:25.000Z">
+<meta property="article:modified_time" content="2025-10-07T03:35:15.220Z">
+<meta property="article:author" content="Shangyi Guo">
+<meta property="article:tag" content="Deep Learning">
+<meta property="article:tag" content="Generative model">
+<meta property="article:tag" content="Models">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://shawnguo327.github.io/2023/08/05/2.DDPM/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://shawnguo327.github.io/2023/08/05/2.DDPM/","path":"2023/08/05/2.DDPM/","title":"DDPM"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>DDPM | Shawn尚's Blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Shawn尚's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Personal-study-notes-of-work-DDPM"><span class="nav-number">1.</span> <span class="nav-text">Personal study notes of work DDPM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Forward%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">Forward前向过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-number">1.0.2.</span> <span class="nav-text">后向过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E7%9B%AE%E6%A0%87"><span class="nav-number">1.0.3.</span> <span class="nav-text">训练目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%87%E6%A0%B7%E8%BF%87%E7%A8%8B"><span class="nav-number">1.0.4.</span> <span class="nav-text">采样过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B"><span class="nav-number">1.0.5.</span> <span class="nav-text">改进</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Shangyi Guo</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://shawnguo327.github.io/2023/08/05/2.DDPM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shangyi Guo">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="DDPM | Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DDPM
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-05 21:55:25" itemprop="dateCreated datePublished" datetime="2023-08-05T21:55:25-04:00">2023-08-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-10-06 23:35:15" itemprop="dateModified" datetime="2025-10-06T23:35:15-04:00">2025-10-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Personal-study-notes-of-work-DDPM"><a href="#Personal-study-notes-of-work-DDPM" class="headerlink" title="Personal study notes of work DDPM"></a>Personal study notes of work DDPM</h1><h3 id="Forward前向过程"><a href="#Forward前向过程" class="headerlink" title="Forward前向过程"></a>Forward前向过程</h3><ul>
+<li><code>x0 -&gt; xt</code>  </li>
+<li><code>x0</code> 真实图像  </li>
+<li><code>xt</code> 最终噪声  </li>
+<li><code>q(xt | xt-1)</code> 以前一个状态为均值的高斯分布，从这里采 <code>xt</code>  </li>
+<li>上面一行的分布方差为 <code>beta_t</code>（<code>t ∈ [1, T]</code>）  </li>
+<li><code>T</code> 步数、<code>beta_1</code> 和 <code>beta_t</code> 是需要设置的</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># linspace()生成随机数</span></span><br><span class="line"><span class="comment"># 但是其实 xt 并不是直接通过 q(xt|xt-1) 得到的，还要经过重参数化</span></span><br><span class="line"><span class="comment"># 重参数化介绍 TODO</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">noise = torch.randn_like(x_0)</span><br><span class="line">xt = sqrt(<span class="number">1</span> - betas[t] * xt-<span class="number">1</span> + sqrt(betas[t]) * noise)  <span class="comment"># 均值和方差开根乘噪声</span></span><br><span class="line">torch.randn_like() 返回与输入大小相同的张量，填满了均值为 <span class="number">0</span> 方差为 <span class="number">1</span> 的随机数</span><br></pre></td></tr></table></figure>
+<p>前向过程中可以取到任意一个 xt，即从这个分布 q(xt | x0) 采样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始设置</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)      <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_s = torch.sqrt(alphas_cum)      <span class="comment"># 根号 alphat</span></span><br><span class="line">alphas_cum_sm = torch.sqrt(<span class="number">1</span> - alphas_cum) <span class="comment"># 1 - alphat</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重参数化得到 xt</span></span><br><span class="line">noise = torch.randn_like(x_0)</span><br><span class="line">xt = alphas_cum_s[t] * x0 + alphas_cum_sm * noise)  <span class="comment"># 均值和方差开根乘噪声</span></span><br></pre></td></tr></table></figure>
+<h3 id="后向过程"><a href="#后向过程" class="headerlink" title="后向过程"></a>后向过程</h3><p>反向的生成 q(xt-1 | xt, x0) 是前向过程 q(xt | xt-1) 的后验概率分布</p>
+<p>可以根据贝叶斯公式推导得到，并且它也是一个高斯分布，并且方差是个常量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 伪代码</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)  <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_prev = torch.cat((torch.tensor([<span class="number">1.0</span>]), alphas_cum[:-<span class="number">1</span>]), <span class="number">0</span>)</span><br><span class="line"><span class="comment"># torch.cat 将两个矩阵连接起来</span></span><br><span class="line">posterior_variance = betas * (<span class="number">1</span> - alphas_cum_prev) / (<span class="number">1</span> - alphas_cum)</span><br></pre></td></tr></table></figure>
+<h3 id="训练目标"><a href="#训练目标" class="headerlink" title="训练目标"></a>训练目标</h3><p>生成的时候我们并没有 x0，那么我们要如何得到 q(xt-1 | xt, x0) 呢？</p>
+<p>这时候我们构造一个分布 p(xt-1 | xt)：</p>
+<p>它的方差和 q 的一致</p>
+<p>均值则更改，将 x0 改为 x0(xt, t)，一个神经网络 Unet，输入噪声图像 xt 和时间步 t</p>
+<p>通过一个损失函数缩小 q 和 p 之间的差距</p>
+<p>最后模型无法直接通过 p 来生成，因为变量太多</p>
+<p>但是，我们根据前向过程知道 xt 可以由 x0 获得，因此变换一下，就可以得到由 xt 得 x0 的式子</p>
+<p>代入到 q(xt-1 | xt, x0) 的均值式子我们可以得到 q(xt-1 | xt, x0) 的均值只与 xt 和前向过程中 t 时刻加的噪声有关</p>
+<p>所以我们修改 p(xt-1 | xt) 的均值，将模型修改为根据 xt 和 t 预测 t 时刻添加的噪声，就得到了一个常量比较多的目标函数</p>
+<p>训练伪代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)      <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_s = torch.sqrt(alphas_cum)      <span class="comment"># 根号 alphat</span></span><br><span class="line">alphas_cum_sm = torch.sqrt(<span class="number">1</span> - alphas_cum) <span class="comment"># 1 - alphat</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">diffusion_loss</span>(<span class="params">model, x0, t, noise</span>):</span><br><span class="line">    <span class="comment"># 根据公式计算 xt</span></span><br><span class="line">    xt = alphas_cum_s[t] * x0 + alphas_cum_sm[t] * noise</span><br><span class="line">    <span class="comment"># Unet 预测噪声</span></span><br><span class="line">    predicted_noise = model(xt, t)</span><br><span class="line">    <span class="comment"># 计算 loss</span></span><br><span class="line">    <span class="keyword">return</span> mse_loss(predicted_noise, noise)</span><br><span class="line">   </span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">len</span>(data_loader):</span><br><span class="line">    <span class="comment"># 从数据集里读取一个 batch，是真实图片</span></span><br><span class="line">    x0 = <span class="built_in">next</span>(data_loader)</span><br><span class="line">    <span class="comment"># 采样时间步</span></span><br><span class="line">    t = torch.randint(<span class="number">0</span>, <span class="number">1000</span>, (batch_size,))</span><br><span class="line">    <span class="comment"># 生成高斯噪声</span></span><br><span class="line">    noise = torch.randn_like(x_0)</span><br><span class="line">    loss = diffusion_loss(model, x0, t, noise)</span><br><span class="line">    optimizer.zero_grad()</span><br><span class="line">    loss.backward()</span><br><span class="line">    optimizer.step()</span><br></pre></td></tr></table></figure>
+<h3 id="采样过程"><a href="#采样过程" class="headerlink" title="采样过程"></a>采样过程</h3><p>真实的推理过程必须从 T 步开始向前逐步生成图片</p>
+<p>先生成一个噪声图片，每个时间步 t 将 xt 传入模型预测噪声，然后采样一个噪声</p>
+<p>由重参数化技巧和后验概率的均值方差，可以计算 xt-1，最后直到 T&#x3D;1</p>
+<h3 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h3><p>Improved DDPM 对 beta 进行了改进，使得前向过程加噪声的过程更合理了一点</p>
+<p>Improved DDPM 还指出可以通过直接设置更小的时间步 s 来减小采样的时间，具体是把 s 与原本的 t 对应</p>
+<p>参考<br>[1] 微信公众号 GiantPandaCV 一文弄懂 Diffusion Model</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Deep-Learning/" rel="tag"># Deep Learning</a>
+              <a href="/tags/Generative-model/" rel="tag"># Generative model</a>
+              <a href="/tags/Models/" rel="tag"># Models</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/04/1About%20Marsilio%20Ficino/" rel="prev" title="About Marsilio Ficino">
+                  <i class="fa fa-angle-left"></i> About Marsilio Ficino
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/08/06/3Causal%20Science/" rel="next" title="Causal Science">
+                  Causal Science <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Shangyi Guo</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
