@@ -128,12 +128,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">categories</span>
       </div>
       <div class="site-state-item site-state-tags">
@@ -154,6 +154,242 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://shawnguo327.github.io/2023/08/06/3Causal%20Science/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shangyi Guo">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/06/3Causal%20Science/" class="post-title-link" itemprop="url">Causal Science</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-06 09:12:04" itemprop="dateCreated datePublished" datetime="2023-08-06T09:12:04-04:00">2023-08-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-10-06 23:35:19" itemprop="dateModified" datetime="2025-10-06T23:35:19-04:00">2025-10-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Fields/" itemprop="url" rel="index"><span itemprop="name">Fields</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="causal-AI-learning-building"><a href="#causal-AI-learning-building" class="headerlink" title="causal AI learning (building)"></a>causal AI learning (building)</h1><h2 id="Background-knowledges"><a href="#Background-knowledges" class="headerlink" title="Background knowledges"></a>Background knowledges</h2><h3 id="基于约束的方法"><a href="#基于约束的方法" class="headerlink" title="基于约束的方法"></a>基于约束的方法</h3><h4 id="Graph"><a href="#Graph" class="headerlink" title="Graph"></a>Graph</h4><p>3 kinds:</p>
+<ul>
+<li><strong>chain</strong> <code>X-&gt;Z-&gt;Y</code><ul>
+<li>when the middle Z is given,X and Y won’t be affected anymore.</li>
+</ul>
+</li>
+<li><strong>fork</strong> <code>X&lt;-Z-&gt;Y</code><ul>
+<li>Z是X和Y的共因，如果X发生改变，Y很有可能也应该改变</li>
+<li>when the middle Z is given,X and Y won’t be affected anymore.</li>
+</ul>
+</li>
+<li><strong>collider</strong> <code>x-&gt;Z&lt;-Y</code><ul>
+<li>在没有given Z时，X和Y是独立的</li>
+<li>when the middle Z is given,X&#x2F;Y would need to change to make sure Z won’t change while Y&#x2F;X is changing</li>
+</ul>
+</li>
+</ul>
+<p>Path can’t be blocked by S(node set).</p>
+<p><strong>blocked:</strong></p>
+<ul>
+<li>given Z when chain&#x2F;fork</li>
+<li>not given Z(and its son nodes) when collider</li>
+</ul>
+<p><strong>D-Seperation:</strong></p>
+<ul>
+<li>when every path between X and Y is blocked by Z</li>
+</ul>
+<p><strong>Markovian assumption</strong>  </p>
+<p><strong>Faithfulness assumption</strong><br>由于以上两个假设我们可以通过given数据推出对应的Markov等价类</p>
+<p><strong>典型算法</strong><br>IC、PC、FCI、RFCI、GFCI</p>
+<p>基本思想是  </p>
+<ol>
+<li>通过数据找到条件独立性列表(cond. independences)  </li>
+<li>通过条件独立性列表得到DAGs有向无环图</li>
+</ol>
+<h3 id="Markov-Equivalence-Class-马尔科夫等价类"><a href="#Markov-Equivalence-Class-马尔科夫等价类" class="headerlink" title="Markov Equivalence Class 马尔科夫等价类"></a>Markov Equivalence Class 马尔科夫等价类</h3><p>可以由同一组d-seperation得到的图s<br>马尔科夫等价类中的图有相同的骨架skeleton和V-结构<br>比如chain和fork的3中图就有相同的V结构</p>
+<h3 id="基于分数的方法-score-based"><a href="#基于分数的方法-score-based" class="headerlink" title="基于分数的方法 score-based"></a>基于分数的方法 score-based</h3><p>Propensity scores matching  </p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://shawnguo327.github.io/2023/08/05/2.DDPM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shangyi Guo">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Shawn尚's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/05/2.DDPM/" class="post-title-link" itemprop="url">DDPM</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-05 21:55:25" itemprop="dateCreated datePublished" datetime="2023-08-05T21:55:25-04:00">2023-08-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-10-06 23:35:15" itemprop="dateModified" datetime="2025-10-06T23:35:15-04:00">2025-10-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="Personal-study-notes-of-work-DDPM"><a href="#Personal-study-notes-of-work-DDPM" class="headerlink" title="Personal study notes of work DDPM"></a>Personal study notes of work DDPM</h1><h3 id="Forward前向过程"><a href="#Forward前向过程" class="headerlink" title="Forward前向过程"></a>Forward前向过程</h3><ul>
+<li><code>x0 -&gt; xt</code>  </li>
+<li><code>x0</code> 真实图像  </li>
+<li><code>xt</code> 最终噪声  </li>
+<li><code>q(xt | xt-1)</code> 以前一个状态为均值的高斯分布，从这里采 <code>xt</code>  </li>
+<li>上面一行的分布方差为 <code>beta_t</code>（<code>t ∈ [1, T]</code>）  </li>
+<li><code>T</code> 步数、<code>beta_1</code> 和 <code>beta_t</code> 是需要设置的</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># linspace()生成随机数</span></span><br><span class="line"><span class="comment"># 但是其实 xt 并不是直接通过 q(xt|xt-1) 得到的，还要经过重参数化</span></span><br><span class="line"><span class="comment"># 重参数化介绍 TODO</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">noise = torch.randn_like(x_0)</span><br><span class="line">xt = sqrt(<span class="number">1</span> - betas[t] * xt-<span class="number">1</span> + sqrt(betas[t]) * noise)  <span class="comment"># 均值和方差开根乘噪声</span></span><br><span class="line">torch.randn_like() 返回与输入大小相同的张量，填满了均值为 <span class="number">0</span> 方差为 <span class="number">1</span> 的随机数</span><br></pre></td></tr></table></figure>
+<p>前向过程中可以取到任意一个 xt，即从这个分布 q(xt | x0) 采样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始设置</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)      <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_s = torch.sqrt(alphas_cum)      <span class="comment"># 根号 alphat</span></span><br><span class="line">alphas_cum_sm = torch.sqrt(<span class="number">1</span> - alphas_cum) <span class="comment"># 1 - alphat</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重参数化得到 xt</span></span><br><span class="line">noise = torch.randn_like(x_0)</span><br><span class="line">xt = alphas_cum_s[t] * x0 + alphas_cum_sm * noise)  <span class="comment"># 均值和方差开根乘噪声</span></span><br></pre></td></tr></table></figure>
+<h3 id="后向过程"><a href="#后向过程" class="headerlink" title="后向过程"></a>后向过程</h3><p>反向的生成 q(xt-1 | xt, x0) 是前向过程 q(xt | xt-1) 的后验概率分布</p>
+<p>可以根据贝叶斯公式推导得到，并且它也是一个高斯分布，并且方差是个常量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 伪代码</span></span><br><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)  <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_prev = torch.cat((torch.tensor([<span class="number">1.0</span>]), alphas_cum[:-<span class="number">1</span>]), <span class="number">0</span>)</span><br><span class="line"><span class="comment"># torch.cat 将两个矩阵连接起来</span></span><br><span class="line">posterior_variance = betas * (<span class="number">1</span> - alphas_cum_prev) / (<span class="number">1</span> - alphas_cum)</span><br></pre></td></tr></table></figure>
+<h3 id="训练目标"><a href="#训练目标" class="headerlink" title="训练目标"></a>训练目标</h3><p>生成的时候我们并没有 x0，那么我们要如何得到 q(xt-1 | xt, x0) 呢？</p>
+<p>这时候我们构造一个分布 p(xt-1 | xt)：</p>
+<p>它的方差和 q 的一致</p>
+<p>均值则更改，将 x0 改为 x0(xt, t)，一个神经网络 Unet，输入噪声图像 xt 和时间步 t</p>
+<p>通过一个损失函数缩小 q 和 p 之间的差距</p>
+<p>最后模型无法直接通过 p 来生成，因为变量太多</p>
+<p>但是，我们根据前向过程知道 xt 可以由 x0 获得，因此变换一下，就可以得到由 xt 得 x0 的式子</p>
+<p>代入到 q(xt-1 | xt, x0) 的均值式子我们可以得到 q(xt-1 | xt, x0) 的均值只与 xt 和前向过程中 t 时刻加的噪声有关</p>
+<p>所以我们修改 p(xt-1 | xt) 的均值，将模型修改为根据 xt 和 t 预测 t 时刻添加的噪声，就得到了一个常量比较多的目标函数</p>
+<p>训练伪代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">betas = torch.linspace(start=<span class="number">0.0001</span>, end=<span class="number">0.02</span>, steps=<span class="number">1000</span>)</span><br><span class="line">alphas = <span class="number">1</span> - betas</span><br><span class="line">alphas_cum = torch.cumprod(alphas, <span class="number">0</span>)      <span class="comment"># 累乘得到 alphat 均值</span></span><br><span class="line">alphas_cum_s = torch.sqrt(alphas_cum)      <span class="comment"># 根号 alphat</span></span><br><span class="line">alphas_cum_sm = torch.sqrt(<span class="number">1</span> - alphas_cum) <span class="comment"># 1 - alphat</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">diffusion_loss</span>(<span class="params">model, x0, t, noise</span>):</span><br><span class="line">    <span class="comment"># 根据公式计算 xt</span></span><br><span class="line">    xt = alphas_cum_s[t] * x0 + alphas_cum_sm[t] * noise</span><br><span class="line">    <span class="comment"># Unet 预测噪声</span></span><br><span class="line">    predicted_noise = model(xt, t)</span><br><span class="line">    <span class="comment"># 计算 loss</span></span><br><span class="line">    <span class="keyword">return</span> mse_loss(predicted_noise, noise)</span><br><span class="line">   </span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">len</span>(data_loader):</span><br><span class="line">    <span class="comment"># 从数据集里读取一个 batch，是真实图片</span></span><br><span class="line">    x0 = <span class="built_in">next</span>(data_loader)</span><br><span class="line">    <span class="comment"># 采样时间步</span></span><br><span class="line">    t = torch.randint(<span class="number">0</span>, <span class="number">1000</span>, (batch_size,))</span><br><span class="line">    <span class="comment"># 生成高斯噪声</span></span><br><span class="line">    noise = torch.randn_like(x_0)</span><br><span class="line">    loss = diffusion_loss(model, x0, t, noise)</span><br><span class="line">    optimizer.zero_grad()</span><br><span class="line">    loss.backward()</span><br><span class="line">    optimizer.step()</span><br></pre></td></tr></table></figure>
+<h3 id="采样过程"><a href="#采样过程" class="headerlink" title="采样过程"></a>采样过程</h3><p>真实的推理过程必须从 T 步开始向前逐步生成图片</p>
+<p>先生成一个噪声图片，每个时间步 t 将 xt 传入模型预测噪声，然后采样一个噪声</p>
+<p>由重参数化技巧和后验概率的均值方差，可以计算 xt-1，最后直到 T&#x3D;1</p>
+<h3 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h3><p>Improved DDPM 对 beta 进行了改进，使得前向过程加噪声的过程更合理了一点</p>
+<p>Improved DDPM 还指出可以通过直接设置更小的时间步 s 来减小采样的时间，具体是把 s 与原本的 t 对应</p>
+<p>参考<br>[1] 微信公众号 GiantPandaCV 一文弄懂 Diffusion Model</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
